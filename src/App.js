@@ -1,85 +1,75 @@
 import React from 'react';
 import './App.css';
-
-const Header = (props) => {
-  console.log(props);
-  return (
-    <header className="header">
-      <h1 className="h1">{props.title}</h1>
-      <span className="stats">Players: {props.totalPlayer}</span>
-    </header>
-  );
-}
-
-const Player = (props) => (
-  <div className="player">
-    <span className="player-name">
-      <button className="remove-player" onClick={() => props.removePlayer(props.id)}> x </button>
-      {props.name}
-    </span>
-    <Counter/>
-  </div>
-);
-
-class Counter extends React.Component {
-  state = {
-    score : 30
-  }
-  // constructor(){
-  //   super(); // 부모 속성 초기화
-  //   this.state = {
-  //     score : 30
-  //   }
-  // }
-  incrementScore = () => {
-    // this.state.score += 1
-    //this.setState({score : this.state.score + 1});
-    this.setState(prevState => ({ score : prevState.score + 1 }));
-  } // arrow function > .bind(this) 하지 않아도 this 인식
-  render() {
-    return(
-      <div className="counter">
-        <button className="counter-action decrement"> - </button>
-        <span className="counter-score">{this.state.score}</span>
-        {/*이벤트 핸들러 우측에는 함수 선언문이 와야 한다. onClick = function 호출 결과 X function 자체 O */}
-        <button className="counter-action increment" onClick={this.incrementScore}> + </button>
-      </div>
-    );
-  }
-}
+import {Header} from './components/Header';
+import Player from './components/Player';
+import AddPlayerForm from "./components/AddPlayerForm";
+import {connect} from "react-redux";
 
 class App extends React.Component{
-  state = {
-    players : [
-      {name: 'LDK', id: 1},
-      {name: 'PARK', id: 2},
-      {name: 'KIM', id: 3},
-      {name: 'LEE', id: 4}
-    ]
-  }
-  handleRemovePlayer = (id) => {
-    console.log('handleRemovePlayer : ',id);
-    this.setState(prevState => {
-      const players = prevState.players.filter(player => player.id !== id);
-      return {
-        players: players
-      }
-    })
-  }
+  // handleRemovePlayer = (id) => {
+  //   console.log('handleRemovePlayer : ',id);
+  //   this.setState(prevState => {
+  //     const players = prevState.players.filter(player => player.id !== id);
+  //     return {
+  //       players: players
+  //     }
+  //   })
+  // }
+
+  // handleChangeScore = (id, delta) => {
+  //   console.log('handleChangeScore: ', id, delta);
+  //   this.setState(prevState => {
+  //     const players = [ ...prevState.players ] // 새로운 배열의 players
+  //     players.forEach(player => {
+  //       if(player.id === id){
+  //         player.score += delta;
+  //       }
+  //     })
+  //     // state가 배열일 경우 새로운 배열을 리턴 - map / filter / ...
+  //     return {
+  //       players // players : players 생략
+  //     }
+  //   })
+  // }
+
+  // handleAddPlayer = (name) => {
+  //   console.log('handleAddPlayer', name);
+  //   this.setState(prevState => {
+  //     const players = [ ...prevState.players ];
+  //     players.push({name: name, id: ++maxId, score: 0});
+  //     return {
+  //       players // players : players 생략
+  //     }
+  //   })
+  // }
+
   render(){
     return(
       <div className="scoreboard">
-        <Header title="My scoreboard" totalPlayer={10 + 1}></Header>
+        <Header title="My scoreboard" players={this.props.players}></Header>
 
         {
-          this.state.players.map(player => ( // 부모가 function handleRemovePlayer 자체를 내린다.
-            <Player name={player.name} key={player.id} id={player.id} removePlayer={this.handleRemovePlayer}></Player>
+          this.props.players.map(player => (
+            <Player name={player.name} key={player.id} id={player.id} score={player.score}
+                    // removePlayer={this.handleRemovePlayer}
+                    // changeScore={this.handleChangeScore}
+            ></Player>
           ))
         }
-
+        {/*<AddPlayerForm addPlayer={this.handleAddPlayer}/>*/}
+        <AddPlayerForm/>
       </div>
     );
   }
 }
 
-export default App;
+// 이후_ subscribe: store의 state => 나의(현재 컴포넌트), props로 매핑
+// 부모 => 자식 통신
+const mapStateToProps = (state) => ({
+  // 왼쪽이 props, 오른쪽이 store의 state
+  players: state.playerReducer.players
+})
+
+
+// 커링 펑션, HoC 컴포넌트
+export default connect(mapStateToProps)(App);
